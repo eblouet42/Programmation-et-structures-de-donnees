@@ -49,6 +49,7 @@ class Tree:
                 chaine+="{},".format(c[i].__str__())
             chaine+="{})".format(c[len(c)-1].__str__())
             return chaine
+        
     def eqmaisjavaispascomprisjaifaitpluscompliqué(self,arbre):
         """Returns if the two trees are representing the same tree, 
         meaning that each node from the first tree has the 
@@ -123,7 +124,7 @@ class Tree:
     
     # Exercice 6
     def oversubstitute(self,t1,t2):
-        """Substitutes any occurence in the original tree of the sub-tree t1 by the sub-tree t2"""
+        """Substitutes any occurence (wherever in the original tree) of the sub-tree t1 by the sub-tree t2"""
         if puisjesubstituerdepuislà(self,t1):
             return substituerdepuislà(self,t1,t2)
         elif self.is_leaf():
@@ -136,7 +137,7 @@ class Tree:
             return Tree(self.label(),tuple(l))
         
     def substitute(self,t1,t2):
-        """Substitutes any occurence at the bottom of the original tree of the sub-tree t1  by the sub-tree t2"""
+        """Substitutes any occurence (at the bottom of the original tree) of the sub-tree t1  by the sub-tree t2"""
         if self.is_leaf() and self!=t1:
             return self
         if self==t1:
@@ -163,8 +164,6 @@ class Tree:
             simplified=simplified.simplify_cas_aplusb_et_afoisb()
         return simplified
 
-
-
     def simplify_cas_aplusb_et_afoisb(self):
         """Simplify the tree according to the following rules: +(a,b)=c and *(a,b)=d where a and b represent integers and c=a+b, d=a*b"""
         if self.is_leaf():
@@ -178,16 +177,19 @@ class Tree:
                 if child.label().isdigit():
                     tosimplify.append(int(child.label()))
                 else:
-                    newchildren.append(child.simplify_aux())
+                    newchildren.append(child.simplify_cas_aplusb_et_afoisb())
             if self.label() == "+":
                 if tosimplify!=[]:
-                    newchildren.append(Tree(str(sum(tosimplify))))
+                    newchildren=[Tree(str(sum(tosimplify)))]+newchildren
                 return Tree("+",tuple(newchildren))
             if self.label() == "*":
                 if tosimplify!=[]:
-                    newchildren.append(Tree(str(prod(tosimplify))))
+                    newchildren=[Tree(str(prod(tosimplify)))]+newchildren
                 return Tree("*",tuple(newchildren))
-                
+    # Exercice 9
+    def not_infixe(self):
+        """Returns a string of the tree in a infix notation"""
+        return pref_to_inf(str(self))
                         
 #============= functions
 
@@ -230,6 +232,7 @@ def substituerdepuislà(arbre,t1,t2):
     
 #Exercice 7
 def prod(list_of_int):
+    """Returns the product of the elements of the list"""
     x=int(list_of_int!=[])
     for nombre in list_of_int:
         x=x*nombre
@@ -237,7 +240,32 @@ def prod(list_of_int):
 
 # Exercice 8
 def polynome_en_x(polynome,x):
+    """Evaluate the tree 'polynome' representing a polynome at the point x where x is an integer"""
     return str(polynome.substitute(Tree("X"),Tree(str(x))).simplify())
+
+# Exercice 9
+def pref_to_inf(car):
+    """Transforms an prefix notation in a infix notation"""
+    if len(car)==1:
+        return car
+    else:
+        operation=car[0]
+        dans_la_parenthese=car[2:-1]
+        coupure=0
+        parentheseouverte=0
+        parenthesefermee=0
+        for i in range(len(dans_la_parenthese)):
+            if dans_la_parenthese[i]==',' and parenthesefermee==parentheseouverte:
+                coupure=i
+                parentheseouverte+=42
+            elif dans_la_parenthese[i]=='(':
+                parentheseouverte+=1
+            elif dans_la_parenthese[i]==')':
+                parenthesefermee+=1
+        gauche=dans_la_parenthese[:coupure]
+        droite=dans_la_parenthese[coupure+1:]
+        print(gauche,operation,droite)
+        return "({}{}{})".format(pref_to_inf(gauche),operation,pref_to_inf(droite))
 
 #============= main
 
@@ -288,5 +316,11 @@ if __name__== "__main__":
     
     # Exercice 8
     print(str(polynome_en_x(Arbre2aderiver,0)))
+    print(str(polynome_en_x(Arbre2aderiver,1)))
     print(str(polynome_en_x(Arbre2aderiver,42)))
+    print(str(polynome_en_x(Arbre2aderiver,666)))
+    
+    # Exercice 9
+    print(Arbre2aderiver.not_infixe())
+    print(Arbre2aderiver.deriv("X").simplify().not_infixe())
         
