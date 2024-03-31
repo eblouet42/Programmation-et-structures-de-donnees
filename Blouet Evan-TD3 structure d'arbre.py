@@ -90,30 +90,110 @@ class Tree:
             else:
                 return Tree("0")
         elif self.label()=="+":
-            return Tree("+",tuple([c.deriv(var) for c in self.children()]))
+            if self.is_leaf():
+                return Tree("0")
+            elif self.nb_children()==1:
+                return self.children()
+            else:
+                L=list(self.children())
+                l=[]
+                for i in range(len(L)):
+                    if L[i].deriv(var)!=Tree("0"):
+                        l.append(L[i].deriv(var))
+                if len(l)==0:
+                    return Tree("0")
+                elif len(l)==1:
+                   return Tree(l[0].label(),l[0].children())
+                else:
+                    return Tree("+",tuple(l))
+        elif self.label()=="*":
+            L=list(self.children())
+            l=[]
+            for i in range(len(L)):
+                lintermediaire=L+[]
+                lintermediaire[i]=lintermediaire[i].deriv(var)
+                if lintermediaire[i]!=Tree("0"):
+                    l.append(Tree("*",tuple(lintermediaire)))
+            if len(l)==0:
+                return Tree("0")
+            elif len(l)==1:
+                return Tree(l[0].label(),l[0].children())
+            else:
+                return Tree("+",tuple(l))
+    
+    # Exercice 6
+    def oversubstitute(self,t1,t2):
+        """Substitutes any occurence in the original tree of the sub-tree t1 by the sub-tree t2"""
+        if puisjesubstituerdepuislà(self,t1):
+            return substituerdepuislà(self,t1,t2)
+        elif self.is_leaf():
+            return self
         else:
             L=list(self.children())
             l=[]
             for i in range(len(L)):
-                lintermediaire=L
-                lintermediaire[i]=lintermediaire[i].deriv(var)
-                l.append(Tree("*",tuple(lintermediaire)))
-            return Tree("+",tuple(l))
-    
-    # Exercice 6
+                l.append(L[i].oversubstitute(t1,t2))
+            return Tree(self.label(),tuple(l))
+        
     def substitute(self,t1,t2):
-        if self.is_leaf():
+        """Substitutes any occurence at the bottom of the original tree of the sub-tree t1  by the sub-tree t2"""
+        if self.is_leaf() and self!=t1:
             return self
-        elif puisjesubstituerdepuislà(self,t1):
+        if self==t1:
             return t2
         else:
-            return Tree(self.label(),self.children()[0].substitute(t1,t2),self.children()[1].substitute(t1,t2))
-                
-        
+            l=[]
+            for child in list(self.children()):
+                l.append(child.substitute(t1,t2))
+            return Tree(self.label(),tuple(l))
 
+    # Exercice 7
+    def simplify(self):
+        """Simplify the tree according to simple rules such as *('X','0')='0' or +('a','b')='c' where a,b are integers and c=a+b"""
+        tree = Tree('')
+        simplified = self
+        while simplified != tree:
+            tree = simplified
+            simplified=simplified.substitute(Tree("+",Tree("X"),Tree("0")),Tree("X"))
+            simplified=simplified.substitute(Tree("+",Tree("0"),Tree("X")),Tree("X"))
+            simplified=simplified.substitute(Tree("*",Tree("X"),Tree("0")),Tree("0"))
+            simplified=simplified.substitute(Tree("*",Tree("0"),Tree("X")),Tree("0"))
+            simplified=simplified.substitute(Tree("*",Tree("X"),Tree("1")),Tree("X"))
+            simplified=simplified.substitute(Tree("*",Tree("1"),Tree("X")),Tree("X"))
+            simplified=simplified.simplify_cas_aplusb_et_afoisb()
+        return simplified
+
+
+
+    def simplify_cas_aplusb_et_afoisb(self):
+        """Simplify the tree according to the following rules: +(a,b)=c and *(a,b)=d where a and b represent integers and c=a+b, d=a*b"""
+        if self.is_leaf():
+            return self
+        elif self.nb_children()==1:
+            return self.child(0)
+        else:
+            newchildren=[]
+            tosimplify=[]
+            for child in self.children():
+                if child.label().isdigit():
+                    tosimplify.append(int(child.label()))
+                else:
+                    newchildren.append(child.simplify_aux())
+            if self.label() == "+":
+                if tosimplify!=[]:
+                    newchildren.append(Tree(str(sum(tosimplify))))
+                return Tree("+",tuple(newchildren))
+            if self.label() == "*":
+                if tosimplify!=[]:
+                    newchildren.append(Tree(str(prod(tosimplify))))
+                return Tree("*",tuple(newchildren))
+                
+                        
 #============= functions
 
+# Exercice 6
 def puisjesubstituerdepuislà(arbre,sub):
+    """Returns if the sub-tree 'sub' is a sub-tree of the tree 'arbre' from its origin"""
     if sub.nb_children()==0:
         return sub.label()==arbre.label()
     if arbre.nb_children()==0:
@@ -128,11 +208,36 @@ def puisjesubstituerdepuislà(arbre,sub):
                     (i,j,luicbon)=(i+1,j+1,luicbon+1)
                 else:
                     j+=1
-            return luicbon==sub.nb_children()
-        
-#def substituerdepuislà(arbre,t1,t2):
+            return luicbon==sub.nb_children()      
+def substituerdepuislà(arbre,t1,t2):
+    """Returns the tree 'arbre' where the sub-tree 't1', beginning at the origin of the tree 'arbre', has been substituted by the sub-tree 't2' """
+    if t1.nb_children()==0:
+        return Tree(t2.label(),arbre.children())
+    else:
+        newchildren=[]
+        i=0
+        for j in range(arbre.nb_children()):
+            if i<t1.nb_children() and arbre.child(j).label()==t1.child(i).label():
+                if i<t2.nb_children():
+                    newchildren.append(substituerdepuislà(arbre.child(j),t1.child(i),t2.child(i)))
+                i+=1
+            else:
+                newchildren.append(arbre.child(j))
+        while i<t2.nb_children():
+            newchildren.append(t2.child(i))
+            i+=1
+        return Tree(t2.label(),tuple(newchildren))
     
-    
+#Exercice 7
+def prod(list_of_int):
+    x=int(list_of_int!=[])
+    for nombre in list_of_int:
+        x=x*nombre
+    return x
+
+# Exercice 8
+def polynome_en_x(polynome,x):
+    return str(polynome.substitute(Tree("X"),Tree(str(x))).simplify())
 
 #============= main
 
@@ -165,10 +270,23 @@ if __name__== "__main__":
     Arbre1aderiver=Tree("+",Tree("3"),Tree("X"))
     Arbre2aderiver=Tree("+",Tree("+",Tree("*",Tree("3"),Tree("*",Tree("X"),Tree("X"))),Tree("*",Tree("5"),Tree("X"))),Tree("7"))
     print(str(Arbre1aderiver.deriv("X")))
+    print(str(Arbre2aderiver))
     print(str(Arbre2aderiver.deriv("X")))
-    print(str(Arbre2aderiver.deriv("3")))
+    print(str(Arbre2aderiver.deriv("Y")))
     
     # Exercice 6
-    t1=Tree("b")
-    t2=Tree("baguette")
-    print(str(A1.substitute(t1,t2)))
+    t1=Tree("b",Tree("b3",Tree("fin")))
+    t2=Tree("baguette",Tree("fromage",Tree("vin"),Tree("esclavage")))
+    print(str(A1.oversubstitute(t1,t2)))
+    assert(A1.substitute(t1,t2)==A1)
+    print(str(A1.substitute(Tree("fin"),Tree("début",Tree("fin1"),Tree("fin2")))))
+    
+    # Exercice 7
+    print(str(Arbre2aderiver.simplify()))
+    print(str(Arbre2aderiver.deriv("X").simplify()))
+    print(str(Arbre2aderiver.deriv("Y").simplify()))
+    
+    # Exercice 8
+    print(str(polynome_en_x(Arbre2aderiver,0)))
+    print(str(polynome_en_x(Arbre2aderiver,42)))
+        
