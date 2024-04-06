@@ -11,11 +11,13 @@ d=open("C:/Users/evanb/Downloads/frenchssaccent.txt","r").read().splitlines()
 class Hashtable:
     
     def __init__(self,f,capacity):
+        """Initializes the Hashtable object with a hash function and a capacity representing the number of list that will append elements"""
         self.__taille=capacity
         self.__tiroirs=[[] for i in range(capacity)]
         self.__function=f
         self.__nb_elements=0
     def put(self,key,value):
+        """Puts the tuple (key,value) in the hash table. If the value key is already in the table, change the value of this key to the value 'value'"""
         image=self.__function(key)%self.__taille
         trouvé=False
         for entree in self.__tiroirs[image]:
@@ -26,10 +28,12 @@ class Hashtable:
         if not trouvé:
             self.__tiroirs[image].append((key,value))
     def tiroirs(self):
+        """Returns a list containing every lists with keys and values as a tuple in it in the hash table"""
         return self.__tiroirs
             
     # Exercice 3
     def get(self,key):
+        """Returns the value of the key in the hash table. If the key isn't in the table, return None"""
         image=self.__function(key)%self.__taille
         for value in self.__tiroirs[image]:
             if value[0]==key:
@@ -38,6 +42,7 @@ class Hashtable:
     
     # Exercice 4
     def repartition(self):
+        """Plots the density in the hash table"""
         X=[i for i in range(self.__taille)]
         Y=[len(value) for value in self.__tiroirs]
         plt.plot(X,Y,color='green')
@@ -45,12 +50,14 @@ class Hashtable:
     
     # Exercice 6
     def resize(self):
+        """Doubles the width of the hash table, and redistributes the element according to this new width"""
         newtable=Hashtable(self.__function,self.__taille*2)
         for tiroir in self.__tiroirs:
             for entree in tiroir:
                 newtable.put(entree[0],entree[1])
         (self.__tiroirs,self.__taille)=(newtable.__tiroirs,newtable.__taille)    
     def newput(self,key,value):
+        """Works like the 'put' method, but also resizes the hash table if there are too many elements in it"""
         if self.__nb_elements>1.2*self.__taille:
             self.resize()
         image=self.__function(key)%self.__taille
@@ -63,10 +70,6 @@ class Hashtable:
         if not trouvé:
             self.__tiroirs[image].append((key,value))
             self.__nb_elements+=1
-            
-    # Exercice 7
-    def taille(self):
-        return self.__taille
     
     # Exercice 9
     def __setitem__(self,key,value):
@@ -80,10 +83,12 @@ class Hashtable:
 
 # Exercice 2
 def hash_naïf(chaine):
+    """A naïve hash function""" 
     return sum([ord(c) for c in chaine])
 
 # Exercice 4
 def repardico(hacheur,n):
+    """Shows the repartition of tuple (word, length of the word) in a dictionnary with n entries"""
     Dico=Hashtable(hacheur,n)
     for mot in d:
         Dico.put(mot,len(mot))
@@ -91,6 +96,7 @@ def repardico(hacheur,n):
 
 # Exercice 5
 def hash_équitable(chaine):
+    """A more equitable hash function"""
     h=0
     for c in chaine:
         h=h*31+ord(c)
@@ -98,6 +104,7 @@ def hash_équitable(chaine):
 
 # Exercice 6
 def newrepardico(hacheur,n):
+    """Works like the repardico method, but using the newput method instead of the put method"""
     Dico=Hashtable(hacheur,n)
     for mot in d:
         Dico.newput(mot,len(mot))
