@@ -70,13 +70,49 @@ class Hashtable:
         if not trouvé:
             self.__tiroirs[image].append((key,value))
             self.__nb_elements+=1
-    
+            
     # Exercice 9
     def __setitem__(self,key,value):
         return self.put(key,value)
     def __getitem__(self,key):
         return self.get(key)
+
+# Exercice 8
+class HashRobintable:
     
+    def __init__(self,f):
+        """Initializes a new HashRobintable object which is an open adressing hash table"""
+        self.__function=f
+        self.__robintable=[]
+        self.__taille=0
+    def put(self,key):
+        """Puts the key in the hash table according to the Robin Hood hashing, using the put_aux auxilary method"""
+        self.put_aux(key,self.__function(key),0)
+    def put_aux(self,key,DIB,PSL):
+        """Puts the key in the hash table according to the Robin Hood hashing, starting at the DIB+PSL-ith entry"""
+        entry=(key,DIB)
+        puted=False
+        while not puted:
+            if DIB+PSL>=self.__taille:
+                self.__robintable.append(None)
+                self.__taille+=1
+                print(self.__taille)
+                print(DIB+PSL)
+            elif self.__robintable[DIB+PSL]==None:
+                self.__robintable[DIB+PSL]=entry
+                puted=True
+            elif PSL>DIB+PSL-self.__robintable[DIB+PSL][1]:
+                newpute=self.__robintable[DIB+PSL]
+                self.__robintable[DIB+PSL]=entry
+                puted=True
+                PSL=DIB+PSL-newpute[1]
+                self.put_aux(newpute[0],newpute[1],PSL)
+            else:
+                PSL+=1
+        return None  
+    def tablebasse(self):
+        """Returns the hash table"""
+        return self.__robintable
         
 
 #============= functions
@@ -152,7 +188,24 @@ if __name__== "__main__":
             duree.append(dur)
     plt.plot([i for i in range(len(duree))], duree, color="g")
     
+    # Exercice 8
+    Tuck=HashRobintable(hash_naïf)
+    Tuck.put("uwu")
+    Tuck.put("kawaii")
+    Tuck.put("noa")
+    Tuck.put("nob")
+    Tuck.put("ano")
+    Tuck.put('noc')
+    Tuck.put('con')
+    Tuck.put('bon')
+    Tuck.put('afghanistan')
+    for i in range(42,666):
+        Tuck.put(str(i))
+    print(Tuck.tablebasse())
+    
     # Exercice 9
-    tablenumerouno['aaa']
+    print(tablenumerouno['aaa'])
+    print(tablenumerouno['abc'])
+    
     
 
