@@ -25,7 +25,7 @@ class Target:
         self.but1.pack(side=LEFT,fill=Y)
         self.but2= Button(self.root,text="Quit", command=self.root.destroy, bg="green")
         self.but2.pack(side=RIGHT,fill=Y)
-        self.label=Label(self.root, text="Press 'P' to shoot randomly, \n 'F' to shoot at where the cursor is, \n and the 'Feu!' button to shoot 5 times randomly.\n Press 'G' for a flabbergasting shot")
+        self.label=Label(self.root, text="Press 'P' to shoot randomly, \n 'F' to shoot at where the cursor is, \n and the 'Feu!' button to shoot 5 times randomly.\n Press 'G' for a flabbergasting shot. \n Try to achieve 4000 points on a shot !")
         self.label.pack()
         self.score=Label(self.root, text='')
         self.score.pack()
@@ -105,10 +105,10 @@ class Target:
             touche=6-(rayon+10)//30
             S+=max(touche, 0)
             self.draw_circle(x,y,5,'red','black')
+        (x,y)=(self.coor[0],self.coor[1])
+        rayon=sqrt((x-200)**2+(y-200)**2)
+        touche=6-(rayon+10)//30
         for i in range(666):
-            (x,y)=(self.coor[0],self.coor[1])
-            rayon=sqrt((x-200)**2+(y-200)**2)
-            touche=6-(rayon+10)//30
             S+=max(touche, 0)
             self.draw_circle(x,y,5,'red','black')
         self.label.configure(text="Score: {} points".format(int(S)))
